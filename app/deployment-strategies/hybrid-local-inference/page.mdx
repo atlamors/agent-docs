@@ -55,21 +55,27 @@ Cross-strategy assumptions are in the [Technical Appendix](/deployment-strategie
 
 ## Deployment Topology
 
+Customers keep one Slack or Telegram bot. A load-balanced cloud endpoint scales Hermes orchestration separately from the customer-controlled inference endpoint.
+
 ```mermaid
 flowchart LR
-  channels["Slack / Telegram"] --> tenant["Vendor-managed Hermes tenant"]
+  channels["Slack / Telegram"] --> ingress["Stable bot endpoint / load balancer"]
 
   subgraph cloud["Vendor-Managed Agent Layer"]
-    tenant --> permissions["Permission policy"]
-    tenant --> ragCloud["Cloud RAG or API retrieval"]
-    tenant --> gateway["Model gateway policy"]
-    tenant --> obs["Cloud observability"]
+    ingress --> runtimePool["Hermes runtime replicas"]
+    runtimePool --> workerPool["Workflow / tool worker pool"]
+    runtimePool --> permissions["Permission policy"]
+    runtimePool --> ragCloud["Cloud RAG or API retrieval"]
+    runtimePool --> gateway["Model gateway policy"]
+    runtimePool --> obs["Cloud observability"]
   end
 
   gateway --> tunnel["Authenticated outbound tunnel"]
+  workerPool --> tunnel
 
   subgraph appliance["Customer-Controlled Inference Unit"]
-    tunnel --> modelServer["Local model server"]
+    tunnel --> inferenceLb["Local inference endpoint / load balancer"]
+    inferenceLb --> modelServer["Local model server replicas"]
     modelServer --> weights["Local model weights"]
     modelServer --> embeddings["Optional embedding model"]
     embeddings --> localVector["Optional local vector store"]

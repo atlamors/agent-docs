@@ -55,23 +55,25 @@ Cross-strategy assumptions are in the [Technical Appendix](/deployment-strategie
 
 ## Deployment Topology
 
+Customers keep one Slack or Telegram bot. A load-balanced endpoint routes traffic to Hermes runtime replicas and worker capacity inside the isolated tenant.
+
 ```mermaid
 flowchart LR
-  channels["Customer Slack / Telegram"] --> adapters["Channel adapters"]
+  channels["Customer Slack / Telegram"] --> ingress["Stable bot endpoint / load balancer"]
 
   subgraph tenant["Isolated Customer Cloud Tenant"]
-    adapters --> hermes["Hermes runtime"]
-    hermes --> queue["Task queue"]
-    hermes --> rag["Customer-specific knowledge store"]
-    hermes --> apiRetrieval["API-backed retrieval"]
-    hermes --> workers["Connector workers"]
-    hermes --> secrets["Customer secrets"]
-    hermes --> audit["Logs and audit"]
-    hermes --> gateway["Model gateway policy"]
+    ingress --> runtimePool["Hermes runtime replicas"]
+    runtimePool --> workerPool["Workflow / tool worker pool"]
+    runtimePool --> queue["Task queue"]
+    runtimePool --> rag["Customer-specific knowledge store"]
+    runtimePool --> apiRetrieval["API-backed retrieval"]
+    runtimePool --> secrets["Customer secrets"]
+    runtimePool --> audit["Logs and audit"]
+    runtimePool --> gateway["Model gateway policy"]
   end
 
   apiRetrieval --> systems["Customer APIs"]
-  workers --> systems["Notion / CRM / KB / project tools"]
+  workerPool --> systems["Notion / CRM / KB / project tools"]
   gateway --> models["Cloud model providers or local add-on"]
 
   subgraph control["Vendor Control Plane"]
@@ -81,8 +83,8 @@ flowchart LR
     fleetObs["Fleet observability"]
   end
 
-  releases --> hermes
-  entitlement --> hermes
+  releases --> runtimePool
+  entitlement --> runtimePool
   audit --> fleetObs
   registry --> releases
 ```

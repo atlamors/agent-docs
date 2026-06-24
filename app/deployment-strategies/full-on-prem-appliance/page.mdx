@@ -48,17 +48,22 @@ Cross-strategy assumptions are in the [Technical Appendix](/deployment-strategie
 
 ## Deployment Topology
 
+Customers keep one approved channel endpoint. Runtime replicas and worker capacity scale inside the customer-controlled infrastructure boundary.
+
 ```mermaid
 flowchart LR
   subgraph customer["Customer-Controlled Infrastructure Boundary"]
-    channels["Slack / Telegram / internal systems"] --> runner["Local Hermes runner"]
-    runner --> permissions["Local permissions"]
-    runner --> connectors["Local connectors"]
-    runner --> rag["Local RAG and vector store"]
-    runner --> gateway["Local model gateway"]
+    channels["Slack / Telegram / internal systems"] --> ingress["Approved bot endpoint / load balancer"]
+    ingress --> runtimePool["Local Hermes runtime replicas"]
+    runtimePool --> workerPool["Workflow / tool worker pool"]
+    runtimePool --> permissions["Local permissions"]
+    runtimePool --> connectors["Local connectors"]
+    runtimePool --> rag["Local RAG and vector store"]
+    runtimePool --> gateway["Local model gateway"]
     gateway --> modelServer["Local model server"]
-    runner --> audit["Local logs and audit"]
+    runtimePool --> audit["Local logs and audit"]
     connectors --> systems["Customer systems"]
+    workerPool --> systems
   end
 
   subgraph control["Optional Vendor Control Plane"]
@@ -67,7 +72,7 @@ flowchart LR
     telemetry["Scoped telemetry summaries"]
   end
 
-  updates --> runner
-  entitlement --> runner
+  updates --> runtimePool
+  entitlement --> runtimePool
   audit --> telemetry
 ```

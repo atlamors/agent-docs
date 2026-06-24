@@ -29,6 +29,25 @@ Over time, those reusable configurations become the SaaS product: internal autom
 
 The strategic goal is to turn bespoke installation work into product leverage.
 
+## Runtime Scaling Assumption
+
+Each deployment pattern should support scaling Hermes behind a stable customer-facing entrypoint.
+
+The customer should not need a new Slack or Telegram bot because one runtime is saturated. The deployment should expose one stable ingress, then add Hermes runtime replicas, orchestration capacity, and worker capacity behind that boundary.
+
+This matters because Hermes capacity is not only message volume. A runtime may also be limited by how many workflows, spawned agents, tool calls, retries, and state transitions it can coordinate reliably at once.
+
+The implementation may differ by deployment pattern:
+
+- Managed Cloud Runtime scales replicas inside the vendor-managed cloud platform.
+- Isolated Cloud Tenant scales replicas inside the customer-specific vendor environment.
+- Hybrid Local Inference scales cloud orchestration separately from the customer-controlled inference endpoint.
+- Full On-Prem Appliance scales within the customer-controlled infrastructure boundary.
+
+The open measurement is the same across patterns:
+
+> How much concurrent orchestration can one Hermes runtime safely handle before another replica is needed?
+
 ## Current Section
 
 - [Deployment Strategies](/deployment-strategies): managed cloud runtime, isolated cloud tenant, hybrid local inference, and full on-prem deployment patterns.

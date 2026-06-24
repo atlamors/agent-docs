@@ -53,27 +53,22 @@ Cross-strategy assumptions are in the [Technical Appendix](/deployment-strategie
 
 ## Deployment Topology
 
+Customers keep one Slack or Telegram bot. A load-balanced endpoint routes traffic to Hermes runtime replicas and worker capacity behind the scenes.
+
 ```mermaid
 flowchart LR
-  channels["Customer Slack / Telegram"] --> runtime["Customer-sandboxed Hermes runtime"]
+  channels["Customer Slack / Telegram"] --> ingress["Stable bot endpoint / load balancer"]
 
   subgraph cloud["Vendor-Managed Cloud"]
-    runtime --> retrieval["API-backed retrieval / customer-specific knowledge store"]
-    runtime --> gateway["Cloud model gateway"]
-    runtime --> secrets["Customer-specific secrets"]
-    runtime --> obs["Customer-specific logs and metrics"]
+    ingress --> runtimePool["Customer-sandboxed Hermes runtime replicas"]
+    runtimePool --> workerPool["Workflow / tool worker pool"]
+    runtimePool --> retrieval["API-backed retrieval / customer-specific knowledge store"]
+    runtimePool --> gateway["Cloud model gateway"]
+    runtimePool --> secrets["Customer-specific secrets"]
+    runtimePool --> obs["Customer-specific logs and metrics"]
   end
 
-  subgraph customer["Customer Systems"]
-    notion["Notion"]
-    kb["Knowledge bases"]
-    crm["CRM"]
-    tools["Project tools"]
-  end
-
-  retrieval --> notion
-  retrieval --> kb
-  retrieval --> crm
-  retrieval --> tools
+  retrieval --> systems["Notion / CRM / KB / project tools"]
+  workerPool --> systems
   gateway --> models["Hosted model providers"]
 ```
