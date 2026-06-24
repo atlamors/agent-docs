@@ -1,0 +1,77 @@
+---
+title: Agent Deployment Strategies
+description: A fast deployment strategy map for Hermes-based centralized intelligence agents.
+---
+
+# Agent Deployment Strategies
+
+This document maps deployment options for Hermes-based agents that support customer support, lead management, and project management workflows across Slack, Telegram, and adjacent business systems.
+
+The near-term business is bespoke deployment. The long-term product is a SaaS onboarding and orchestration platform. The architecture should make both true at the same time.
+
+## Operating Thesis
+
+Each customer deployment should be a versioned instance of the same product architecture, not a forked services project.
+
+Customer differences should live in:
+
+- configuration
+- permissions
+- department scopes
+- integrations
+- RAG sources
+- model routing policy
+- workflow templates
+- deployment topology
+
+They should not live in bespoke source-code branches.
+
+## CTO Invariants
+
+- We can push runtime, connector, policy, and agent-template updates across deployed instances.
+- Every deployment is observable enough to understand cost, latency, failures, and support load.
+- Local inference is a supported option even when the agent control plane is cloud-hosted.
+- Bare metal on-prem is possible, but priced and scoped as a premium deployment.
+- Bespoke installs teach the future SaaS onboarding flow instead of becoming isolated consulting debt.
+
+## Shared Architecture
+
+All options should preserve the same conceptual split.
+
+```txt
+Company control plane
+  - deployment registry
+  - release channels
+  - signed bundles
+  - agent templates
+  - connector versions
+  - eval packs
+  - entitlement and licensing
+  - fleet observability
+
+Customer data plane
+  - Hermes runtime or runner
+  - channel adapters
+  - permission enforcement
+  - RAG and knowledge stores
+  - model gateway
+  - tool connectors
+  - logs and audit trail
+```
+
+## Option Summary
+
+| Option | Best for | Data boundary | Update path | Margin profile |
+| --- | --- | --- | --- | --- |
+| Cloud Lite | Fastest proof-of-value and future self-serve SaaS | Company cloud plus customer APIs | Centralized | Best |
+| Dedicated Cloud Tenant | Default bespoke installs | Isolated customer VPS or tenant cell | Centralized with per-tenant rings | Strong if automated |
+| Hybrid Local Inference | Customers needing local models without full on-prem agents | Cloud agent plus customer-site model unit | Cloud-managed plus appliance updates | Good if appliance support is bounded |
+| Full On-Prem Appliance | High-security or regulated customers | Customer location | Signed offline or managed updates | Worst unless priced as enterprise |
+
+## Recommended Default
+
+Use Dedicated Cloud Tenant as the default for paid bespoke installs, with Hybrid Local Inference available as an add-on.
+
+Cloud Lite becomes the eventual SaaS default. Full On-Prem Appliance remains a premium exception.
+
+The product should feel like four deployment modes, but internally it should be one architecture with four topologies.

@@ -1,0 +1,66 @@
+---
+title: Cloud Lite
+description: Lowest-friction hosted deployment that connects to customer knowledge systems through APIs.
+---
+
+# Cloud Lite
+
+Cloud Lite is the fastest deployment mode. Hermes and the agents run in the company cloud, while customer knowledge is reached through APIs and approved integrations.
+
+```txt
+Slack / Telegram
+  -> hosted Hermes agent
+  -> customer APIs
+     - Notion
+     - knowledge bases
+     - CRM
+     - project tools
+  -> cloud model gateway
+```
+
+## Use When
+
+- The customer wants fast proof of value.
+- Security requirements are light.
+- Customer systems expose clean APIs.
+- The deployment is small enough that deep tenant isolation is not required.
+- The primary goal is learning, onboarding speed, and margin.
+
+## What Runs Where
+
+| Component | Location |
+| --- | --- |
+| Hermes runtime | Company cloud |
+| Slack / Telegram adapters | Company cloud |
+| RAG index | Company cloud or API-backed retrieval |
+| Model gateway | Company cloud |
+| Customer documents | Customer source systems unless indexed |
+| Observability | Company cloud |
+
+## Strengths
+
+- Fastest install.
+- Easiest update path.
+- Best early unit economics.
+- Cleanest future SaaS path.
+- Minimal customer infrastructure burden.
+
+## Risks
+
+- Weakest security posture.
+- Depends on external API reliability and permissions.
+- Retrieval quality may suffer if the product cannot control indexing.
+- Some customers will object to cloud processing.
+
+## Productization Path
+
+Cloud Lite should become the self-serve SaaS onboarding flow:
+
+- connect Slack or Telegram
+- authorize Notion and other systems
+- select department templates
+- configure permissions
+- run an acceptance test pack
+- launch to a small user group
+
+This is the long-term default once the manual deployment playbook is mature.

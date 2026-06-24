@@ -1,0 +1,8 @@
+:root {
+  --nextra-primary-hue: 210deg;
+  --nextra-primary-saturation: 82%;
+}
+
+html {
+  letter-spacing: 0;
+}

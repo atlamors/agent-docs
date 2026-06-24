@@ -1,0 +1,90 @@
+---
+title: Full On-Prem Appliance
+description: Premium customer-site deployment where Hermes, agents, RAG, connectors, and inference run locally.
+---
+
+# Full On-Prem Appliance
+
+Full On-Prem Appliance moves the agent runtime and supporting services into the customer's environment.
+
+This is the strongest data-control option and the highest support-risk option.
+
+```txt
+Customer Slack / Telegram / internal systems
+  -> local Hermes deployment
+     - local agent runner
+     - local permissions
+     - local connectors
+     - local RAG
+     - local model gateway
+     - local logs and audit
+  -> optional cloud control plane
+     - signed updates
+     - entitlement
+     - telemetry summaries
+```
+
+## Use When
+
+- The customer requires strict local processing.
+- Data cannot leave the customer environment.
+- The customer has regulated, high-security, or offline requirements.
+- The customer is paying enough to justify enterprise support.
+
+## What Runs Where
+
+| Component | Location |
+| --- | --- |
+| Hermes runtime | Customer environment |
+| Agent runner | Customer environment |
+| RAG and vector store | Customer environment |
+| Connectors | Customer environment |
+| Model gateway | Customer environment |
+| Model server | Customer environment |
+| Control plane | Optional cloud or offline updates |
+
+## Source-Code / IP Risk
+
+If software runs on customer-controlled hardware, assume a motivated customer can inspect a meaningful amount of it.
+
+Mitigations:
+
+- ship signed containers or compiled services instead of raw repositories
+- keep the local runner generic and declarative
+- separate Hermes runtime from proprietary agent templates
+- load licensed templates or policies through entitlement where possible
+- use signed bundles and license checks
+- keep sensitive deployment tooling in the control plane
+
+These reduce casual leakage. They do not make local software impossible to inspect.
+
+## Strengths
+
+- Strongest data boundary.
+- Supports full local inference.
+- Can operate with limited outbound access.
+- Best answer for customers with serious security requirements.
+
+## Risks
+
+- Worst unit economics unless priced high.
+- Hardest updates and rollback.
+- Hardest debugging.
+- Hardware and environment variability can dominate support.
+- More exposure of implementation details.
+
+## Productization Path
+
+Full on-prem should remain a premium enterprise tier.
+
+Require:
+
+- approved hardware profile
+- scoped deployment statement
+- support SLA
+- maintenance window policy
+- update/rollback agreement
+- local admin owner
+- acceptance eval pack
+
+This should not be the default SMB deployment path.

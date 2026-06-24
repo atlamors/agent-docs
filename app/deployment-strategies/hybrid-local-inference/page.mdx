@@ -1,0 +1,85 @@
+---
+title: Hybrid Local Inference
+description: Cloud-managed agents with customer-site inference units exposed through authenticated outbound tunnels.
+---
+
+# Hybrid Local Inference
+
+Hybrid Local Inference keeps the agent control plane cloud-managed while routing model calls to a customer-site inference unit.
+
+This is the preferred way to offer local inference without immediately shipping the full agent stack into the customer's environment.
+
+```txt
+Cloud Hermes or dedicated tenant
+  -> authenticated reverse tunnel
+  -> customer-site inference unit
+     - local model server
+     - optional embedding model
+     - optional local vector store
+```
+
+## Use When
+
+- The customer wants local inference for cost, latency, privacy, or control.
+- The company still wants cloud-managed deployment and updates.
+- The customer can support a managed hardware unit on-site.
+- The deployment does not require full data locality.
+
+## Important Boundary
+
+Local inference is not automatically the same as full data residency.
+
+If the cloud agent assembles prompts and sends them to the local unit, sensitive prompt context may still pass through the cloud environment. If the promise is that customer data never leaves the premises, retrieval, prompt assembly, permission checks, and possibly the Hermes runner need to move local too.
+
+## What Runs Where
+
+| Component | Location |
+| --- | --- |
+| Hermes runtime | Cloud tenant by default |
+| Model server | Customer-site inference unit |
+| Local model weights | Customer-site inference unit |
+| Reverse tunnel | Customer outbound to company cloud |
+| RAG | Cloud by default, local if required |
+| Observability | Cloud summary plus local appliance logs |
+
+## Security Model
+
+Use an outbound-only connection from the appliance to the cloud where possible.
+
+Minimum requirements:
+
+- mTLS between cloud and appliance
+- signed appliance identity
+- short-lived scoped credentials
+- per-customer rate limits
+- audit logs on both sides
+- remote disable / revoke path
+- signed updates for appliance software
+
+## Strengths
+
+- Supports local inference as a product feature.
+- Avoids exposing full agent source or orchestration logic by default.
+- Preserves centralized management.
+- Can improve latency and model cost for high-volume deployments.
+- Creates a premium hardware or appliance offering.
+
+## Risks
+
+- Hardware failures become support burden.
+- Customer network environments can be messy.
+- Debugging crosses cloud and local boundaries.
+- It can create false expectations about data residency unless scoped carefully.
+
+## Productization Path
+
+Hybrid Local Inference should become an add-on path:
+
+- choose model policy
+- register appliance
+- run appliance health checks
+- verify tunnel and auth
+- run local inference eval pack
+- monitor utilization and failure rates
+
+This is the local-model bridge before committing to full on-prem agents.
