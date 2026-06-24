@@ -1,20 +1,46 @@
 ---
 title: Agent Docs
-description: Documentation for Hermes-based agent architecture, deployments, and operations.
+description: Deployment strategy notes for Hermes-based business agents.
 ---
 
 # Agent Docs
 
-This repo holds documentation for Hermes-based agent deployments and the path from bespoke installs to a full SaaS platform.
+This docs set focuses on deployment strategies for Hermes-based agents deployed through Slack, Telegram, and adjacent business systems.
 
-## Current Sections
+## Business Strategy
 
-- [Deployment Strategies](deployment-strategies): cloud, dedicated tenant, hybrid local inference, and full on-prem deployment modes.
+The company should use high-touch deployments to build a repeatable product, not a services-heavy implementation business.
 
-## Operating Principle
+Customers may need different deployment boundaries, integrations, permissions, and workflows. Those differences should be handled through a standardized deployment engine and reusable configuration, not one-off engineering.
 
-Manual deployment work should become one of three things:
+The core product should remain consistent across every customer:
 
-- a reusable internal checklist
-- a productized SaaS onboarding feature
-- a conscious enterprise-services offering
+- one release process
+- one update and rollback path
+- one observability model
+- one deployment harness
+- one configuration system
+
+After deployment, the customer-specific work should be captured as reusable configuration: workflows, tools, permissions, knowledge sources, model routing, escalation paths, and acceptance tests.
+
+This creates a compounding business model. Each paid deployment should produce reusable assets that make the next deployment faster, cheaper, and more reliable.
+
+Over time, those reusable configurations become the SaaS product: internal automation first, then preset deployment packages, then customer-facing GUI controls.
+
+The strategic goal is to turn bespoke installation work into product leverage.
+
+## Current Section
+
+- [Deployment Strategies](deployment-strategies): managed cloud runtime, isolated cloud tenant, hybrid local inference, and full on-prem deployment patterns.
+
+## Scope
+
+These docs are about deployment boundaries:
+
+- where the agent runtime runs
+- where customer data and RAG indexes live
+- where model inference happens
+- how updates and rollback work
+- what must be clarified before choosing a deployment model
+
+Commercial packaging, pricing, support model, and SaaS roadmap assumptions are only included in the [Technical Appendix](deployment-strategies/technical-appendix) when they directly affect deployment choice.

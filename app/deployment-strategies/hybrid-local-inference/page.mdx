@@ -1,85 +1,78 @@
 ---
 title: Hybrid Local Inference
-description: Cloud-managed agents with customer-site inference units exposed through authenticated outbound tunnels.
+description: Vendor-managed deployment with customer-controlled model execution.
 ---
 
 # Hybrid Local Inference
 
-Hybrid Local Inference keeps the agent control plane cloud-managed while routing model calls to a customer-site inference unit.
+Hybrid Local Inference keeps the agent deployment vendor-managed while routing model calls to a customer-controlled inference endpoint.
 
-This is the preferred way to offer local inference without immediately shipping the full agent stack into the customer's environment.
+This strategy is only about where model execution happens. It should not be treated as a full data-residency model unless retrieval, prompt assembly, permissions, logs, and runtime placement are also moved local.
 
-```txt
-Cloud Hermes or dedicated tenant
-  -> authenticated reverse tunnel
-  -> customer-site inference unit
-     - local model server
-     - optional embedding model
-     - optional local vector store
-```
+## Deployment Boundary
+
+| Component | Default location |
+| --- | --- |
+| Agent runtime | Vendor-managed cloud tenant |
+| Channel adapters | Vendor-managed cloud tenant |
+| RAG / retrieval | Vendor-managed cloud tenant unless explicitly moved local |
+| Prompt assembly | Vendor-managed cloud tenant unless explicitly moved local |
+| Model inference | Customer-controlled inference endpoint |
+| Logs and observability | Vendor-managed summaries plus local appliance logs |
+
+## Locality Levels
+
+| Level | What moves local | What it means |
+| --- | --- | --- |
+| Local model only | Model server and weights | Model execution happens inside the customer-controlled boundary, but orchestration may remain vendor-managed. |
+| Local retrieval | Embeddings, vector store, selected RAG sources | Retrieval can stay inside the customer-controlled boundary, but vendor-managed cloud may still coordinate the workflow. |
+| Local prompt assembly | Permission checks, retrieval, prompt assembly | Stronger data boundary, more local operational responsibility. |
+| Full local runner | Runtime, tools, RAG, model gateway | This becomes Full On-Prem Appliance. |
 
 ## Use When
 
-- The customer wants local inference for cost, latency, privacy, or control.
-- The company still wants cloud-managed deployment and updates.
-- The customer can support a managed hardware unit on-site.
-- The deployment does not require full data locality.
+- The customer specifically requires local model execution.
+- The customer can host and maintain a model endpoint or appliance.
+- Vendor-managed cloud orchestration is still acceptable.
+- Full local processing is not required.
 
-## Important Boundary
+## Avoid When
 
-Local inference is not automatically the same as full data residency.
+- The customer means "no data leaves premises."
+- The customer cannot support a local appliance or model endpoint.
+- Network policy prevents a reliable authenticated connection between cloud and customer site.
+- The support boundary for the local unit is undefined.
 
-If the cloud agent assembles prompts and sends them to the local unit, sensitive prompt context may still pass through the cloud environment. If the promise is that customer data never leaves the premises, retrieval, prompt assembly, permission checks, and possibly the Hermes runner need to move local too.
+## Clarify First
 
-## What Runs Where
+- Is the requirement local inference, local retrieval, local prompt assembly, or full local processing?
+- What data may pass through the vendor-managed cloud tenant?
+- Who owns appliance uptime and network access?
+- How are local model updates handled?
+- What happens if the local model endpoint is unavailable?
 
-| Component | Location |
-| --- | --- |
-| Hermes runtime | Cloud tenant by default |
-| Model server | Customer-site inference unit |
-| Local model weights | Customer-site inference unit |
-| Reverse tunnel | Customer outbound to company cloud |
-| RAG | Cloud by default, local if required |
-| Observability | Cloud summary plus local appliance logs |
+Cross-strategy assumptions are in the [Technical Appendix](../technical-appendix).
 
-## Security Model
+## Deployment Topology
 
-Use an outbound-only connection from the appliance to the cloud where possible.
+```mermaid
+flowchart LR
+  channels["Slack / Telegram"] --> tenant["Vendor-managed Hermes tenant"]
 
-Minimum requirements:
+  subgraph cloud["Vendor-Managed Agent Layer"]
+    tenant --> permissions["Permission policy"]
+    tenant --> ragCloud["Cloud RAG or API retrieval"]
+    tenant --> gateway["Model gateway policy"]
+    tenant --> obs["Cloud observability"]
+  end
 
-- mTLS between cloud and appliance
-- signed appliance identity
-- short-lived scoped credentials
-- per-customer rate limits
-- audit logs on both sides
-- remote disable / revoke path
-- signed updates for appliance software
+  gateway --> tunnel["Authenticated outbound tunnel"]
 
-## Strengths
-
-- Supports local inference as a product feature.
-- Avoids exposing full agent source or orchestration logic by default.
-- Preserves centralized management.
-- Can improve latency and model cost for high-volume deployments.
-- Creates a premium hardware or appliance offering.
-
-## Risks
-
-- Hardware failures become support burden.
-- Customer network environments can be messy.
-- Debugging crosses cloud and local boundaries.
-- It can create false expectations about data residency unless scoped carefully.
-
-## Productization Path
-
-Hybrid Local Inference should become an add-on path:
-
-- choose model policy
-- register appliance
-- run appliance health checks
-- verify tunnel and auth
-- run local inference eval pack
-- monitor utilization and failure rates
-
-This is the local-model bridge before committing to full on-prem agents.
+  subgraph appliance["Customer-Controlled Inference Unit"]
+    tunnel --> modelServer["Local model server"]
+    modelServer --> weights["Local model weights"]
+    modelServer --> embeddings["Optional embedding model"]
+    embeddings --> localVector["Optional local vector store"]
+    health["Appliance health logs"] --> obs
+  end
+```

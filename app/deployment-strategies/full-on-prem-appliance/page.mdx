@@ -1,90 +1,73 @@
 ---
 title: Full On-Prem Appliance
-description: Premium customer-site deployment where Hermes, agents, RAG, connectors, and inference run locally.
+description: Customer-controlled deployment for strict local-processing requirements.
 ---
 
 # Full On-Prem Appliance
 
-Full On-Prem Appliance moves the agent runtime and supporting services into the customer's environment.
+Full On-Prem Appliance moves the agent runtime and supporting services inside the customer-controlled infrastructure boundary.
 
-This is the strongest data-control option and the highest support-risk option.
+Use this strategy when the deployment boundary requires local processing for runtime, retrieval, connectors, logs, and model inference.
 
-```txt
-Customer Slack / Telegram / internal systems
-  -> local Hermes deployment
-     - local agent runner
-     - local permissions
-     - local connectors
-     - local RAG
-     - local model gateway
-     - local logs and audit
-  -> optional cloud control plane
-     - signed updates
-     - entitlement
-     - telemetry summaries
-```
-
-## Use When
-
-- The customer requires strict local processing.
-- Data cannot leave the customer environment.
-- The customer has regulated, high-security, or offline requirements.
-- The customer is paying enough to justify enterprise support.
-
-## What Runs Where
+## Deployment Boundary
 
 | Component | Location |
 | --- | --- |
-| Hermes runtime | Customer environment |
-| Agent runner | Customer environment |
-| RAG and vector store | Customer environment |
-| Connectors | Customer environment |
-| Model gateway | Customer environment |
-| Model server | Customer environment |
-| Control plane | Optional cloud or offline updates |
+| Agent runtime | Customer-controlled infrastructure boundary |
+| Channel adapters | Customer-controlled infrastructure boundary or customer-approved network path |
+| RAG / retrieval | Customer-controlled infrastructure boundary |
+| Connectors | Customer-controlled infrastructure boundary |
+| Model inference | Customer-controlled infrastructure boundary |
+| Logs and audit | Customer-controlled infrastructure boundary, with scoped telemetry only if approved |
+| Updates | Managed channel, scheduled bundle, or offline package |
 
-## Source-Code / IP Risk
+## Use When
 
-If software runs on customer-controlled hardware, assume a motivated customer can inspect a meaningful amount of it.
+- Data cannot leave the customer-controlled infrastructure boundary.
+- Runtime must execute on customer-controlled infrastructure.
+- Retrieval, prompt assembly, connector actions, and logs must stay local.
+- The customer can provide an admin owner, hardware profile, and update window.
+- Offline or restricted-network operation is required.
 
-Mitigations:
+## Avoid When
 
-- ship signed containers or compiled services instead of raw repositories
-- keep the local runner generic and declarative
-- separate Hermes runtime from proprietary agent templates
-- load licensed templates or policies through entitlement where possible
-- use signed bundles and license checks
-- keep sensitive deployment tooling in the control plane
+- Local inference alone satisfies the requirement.
+- Isolated Cloud Tenant satisfies the isolation requirement.
+- The customer cannot support the required local infrastructure.
+- The update and rollback process cannot be agreed in advance.
 
-These reduce casual leakage. They do not make local software impossible to inspect.
+## Clarify First
 
-## Strengths
+- What data, logs, telemetry, or metadata may leave the customer-controlled infrastructure boundary?
+- Are updates online, scheduled, or offline-only?
+- Who owns local backups, restore, and hardware replacement?
+- What package format is acceptable: containers, binaries, appliance image, or managed hardware?
+- What access is available for debugging and emergency rollback?
 
-- Strongest data boundary.
-- Supports full local inference.
-- Can operate with limited outbound access.
-- Best answer for customers with serious security requirements.
+Cross-strategy assumptions are in the [Technical Appendix](../technical-appendix).
 
-## Risks
+## Deployment Topology
 
-- Worst unit economics unless priced high.
-- Hardest updates and rollback.
-- Hardest debugging.
-- Hardware and environment variability can dominate support.
-- More exposure of implementation details.
+```mermaid
+flowchart LR
+  subgraph customer["Customer-Controlled Infrastructure Boundary"]
+    channels["Slack / Telegram / internal systems"] --> runner["Local Hermes runner"]
+    runner --> permissions["Local permissions"]
+    runner --> connectors["Local connectors"]
+    runner --> rag["Local RAG and vector store"]
+    runner --> gateway["Local model gateway"]
+    gateway --> modelServer["Local model server"]
+    runner --> audit["Local logs and audit"]
+    connectors --> systems["Customer systems"]
+  end
 
-## Productization Path
+  subgraph control["Optional Vendor Control Plane"]
+    updates["Signed updates"]
+    entitlement["Entitlement"]
+    telemetry["Scoped telemetry summaries"]
+  end
 
-Full on-prem should remain a premium enterprise tier.
-
-Require:
-
-- approved hardware profile
-- scoped deployment statement
-- support SLA
-- maintenance window policy
-- update/rollback agreement
-- local admin owner
-- acceptance eval pack
-
-This should not be the default SMB deployment path.
+  updates --> runner
+  entitlement --> runner
+  audit --> telemetry
+```

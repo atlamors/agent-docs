@@ -1,77 +1,88 @@
 ---
 title: Agent Deployment Strategies
-description: A fast deployment strategy map for Hermes-based centralized intelligence agents.
+description: Deployment strategy comparison for Hermes-based agents.
 ---
 
 # Agent Deployment Strategies
 
-This document maps deployment options for Hermes-based agents that support customer support, lead management, and project management workflows across Slack, Telegram, and adjacent business systems.
+This section compares deployment models for Hermes-based agents that run through Slack, Telegram, and customer business systems.
 
-The near-term business is bespoke deployment. The long-term product is a SaaS onboarding and orchestration platform. The architecture should make both true at the same time.
+The goal is narrow: choose where the runtime, customer data, RAG, connectors, model inference, logs, and update path should live for a given customer deployment.
 
-## Operating Thesis
+This section does not define the vendor's product roadmap, pricing, customer success model, or support operating model. Where those assumptions affect deployment choice, they are marked explicitly in the [Technical Appendix](technical-appendix).
 
-Each customer deployment should be a versioned instance of the same product architecture, not a forked services project.
+## Control Boundary Terms
 
-Customer differences should live in:
+- **Vendor:** the agent platform company operating the Hermes-based system.
+- **Customer:** the client organization using the agent.
+- **Vendor-managed cloud:** infrastructure owned or operated by the vendor.
+- **Customer-specific vendor environment:** a vendor-managed environment dedicated to one customer.
+- **Customer-controlled infrastructure boundary:** infrastructure, account, network, or hardware controlled by the customer.
 
-- configuration
-- permissions
-- department scopes
-- integrations
-- RAG sources
-- model routing policy
-- workflow templates
-- deployment topology
+## Agent Isolation Invariant
 
-They should not live in bespoke source-code branches.
+No deployment pattern should rely on a shared, unsandboxed agent runtime across customers. Runtime, credentials, tools, memory, retrieval, logs, and job execution must be sandboxed per customer.
 
-## CTO Invariants
+Kubernetes namespaces, containers, VMs, VPSs, VPCs, and cloud accounts are implementation choices inside a deployment pattern. They do not create new patterns by themselves.
 
-- We can push runtime, connector, policy, and agent-template updates across deployed instances.
-- Every deployment is observable enough to understand cost, latency, failures, and support load.
-- Local inference is a supported option even when the agent control plane is cloud-hosted.
-- Bare metal on-prem is possible, but priced and scoped as a premium deployment.
-- Bespoke installs teach the future SaaS onboarding flow instead of becoming isolated consulting debt.
+## Known Deployment Inputs
 
-## Shared Architecture
-
-All options should preserve the same conceptual split.
-
-```txt
-Company control plane
-  - deployment registry
-  - release channels
-  - signed bundles
-  - agent templates
-  - connector versions
-  - eval packs
-  - entitlement and licensing
-  - fleet observability
-
-Customer data plane
-  - Hermes runtime or runner
-  - channel adapters
-  - permission enforcement
-  - RAG and knowledge stores
-  - model gateway
-  - tool connectors
-  - logs and audit trail
-```
+- Agents are deployed through Slack, Telegram, or similar channels.
+- Agents need controlled access to customer systems such as Notion, knowledge bases, CRMs, project tools, and RAG-backed data.
+- Customer deployments may require department-level permissions.
+- Deployments need an update path across instances.
+- Some customers may require local inference.
+- Some customers may require full on-prem or bare-metal deployment.
 
 ## Option Summary
 
-| Option | Best for | Data boundary | Update path | Margin profile |
+| Strategy | Runtime location | Customer data / RAG location | Model inference | Use when |
 | --- | --- | --- | --- | --- |
-| Cloud Lite | Fastest proof-of-value and future self-serve SaaS | Company cloud plus customer APIs | Centralized | Best |
-| Dedicated Cloud Tenant | Default bespoke installs | Isolated customer VPS or tenant cell | Centralized with per-tenant rings | Strong if automated |
-| Hybrid Local Inference | Customers needing local models without full on-prem agents | Cloud agent plus customer-site model unit | Cloud-managed plus appliance updates | Good if appliance support is bounded |
-| Full On-Prem Appliance | High-security or regulated customers | Customer location | Signed offline or managed updates | Worst unless priced as enterprise |
+| [Managed Cloud Runtime](managed-cloud-runtime) | Vendor-managed cloud, per-customer sandbox | Customer APIs or vendor-hosted customer-specific knowledge store | Cloud model | Standard cloud deployment with low customization. |
+| [Isolated Cloud Tenant](isolated-cloud-tenant) | Customer-specific vendor environment | Dedicated customer-specific knowledge store, customer APIs, or both | Cloud model, with local add-on possible | Customer needs stronger isolation but not full on-prem. |
+| [Hybrid Local Inference](hybrid-local-inference) | Vendor-managed cloud by default | Vendor-managed or customer-controlled, depending on boundary requirement | Customer-controlled inference endpoint | Customer wants local model execution. |
+| [Full On-Prem Appliance](full-on-prem-appliance) | Customer-controlled infrastructure boundary | Customer-controlled infrastructure boundary | Customer-controlled infrastructure boundary | Runtime, data, and inference must remain customer-controlled. |
 
-## Recommended Default
+## Selection Logic
 
-Use Dedicated Cloud Tenant as the default for paid bespoke installs, with Hybrid Local Inference available as an add-on.
+- Start with Managed Cloud Runtime when vendor-managed cloud is acceptable and the customer needs a standard sandboxed deployment.
+- Use Isolated Cloud Tenant when the customer needs a stronger customer-specific vendor environment for runtime, secrets, logs, retrieval, or connectors.
+- Use Hybrid Local Inference when the customer wants model execution to happen on customer-controlled hardware, but does not require the full agent stack to move local.
+- Use Full On-Prem Appliance when runtime, retrieval, connectors, logs, and inference must all run inside the customer-controlled infrastructure boundary.
 
-Cloud Lite becomes the eventual SaaS default. Full On-Prem Appliance remains a premium exception.
+## Boundary Questions
 
-The product should feel like four deployment modes, but internally it should be one architecture with four topologies.
+These questions determine the deployment strategy.
+
+- Can customer data be processed in vendor-managed cloud infrastructure?
+- Can customer documents be indexed outside the customer-controlled infrastructure boundary?
+- Does the customer require local inference, or full local processing?
+- Are Slack, Telegram, Notion, CRM, KB, and project-tool integrations available through APIs?
+- Are department permissions enforced in source systems, the agent layer, or both?
+- What logs, traces, and audit events may leave the customer-controlled infrastructure boundary?
+- Does the customer require isolated runtime, isolated knowledge storage, isolated secrets, or all three?
+- How are runtime, connector, policy, and model-routing updates applied?
+- What rollback path is required if an agent update or connector update fails?
+
+## Unit Economics Inputs
+
+Deployment strategy changes the cost to launch, operate, update, and support each customer instance.
+
+This section does not assume pricing or margin. It identifies the cost inputs that should be measured before choosing a default deployment model.
+
+| Cost driver | Why it affects deployment choice |
+| --- | --- |
+| Initial setup time | Determines whether a strategy can be repeated without custom engineering. |
+| Runtime infrastructure | Customer-specific vendor environments and on-prem deployments add fixed per-customer overhead. |
+| Model inference cost | Cloud models, local inference units, and customer-hosted models create different cost profiles. |
+| Connector maintenance | API-backed deployments depend on connector stability, auth refresh, rate limits, and schema drift. |
+| Knowledge maintenance | Customer-specific knowledge stores require ingestion, refresh, deletion handling, and permission checks. |
+| Observability and support access | More restricted deployments can increase time-to-debug and rollback effort. |
+| Update and rollback effort | A strategy is more expensive if every upgrade requires customer-specific coordination. |
+| Hardware or appliance handling | Hybrid local inference and on-prem deployments add procurement, installation, monitoring, and replacement work. |
+
+The appendix includes an assumption-based checklist for tracking these costs by deployment mode.
+
+## Technical Appendix
+
+Detailed diagrams, implementation assumptions, operating-model assumptions, and deployment runbook notes live in the [Technical Appendix](technical-appendix).

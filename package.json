@@ -9,11 +9,15 @@
     "start": "next start"
   },
   "dependencies": {
+    "@theguild/remark-mermaid": "^0.2.0",
     "next": "15.5.19",
     "nextra": "4.2.17",
     "nextra-theme-docs": "4.2.17",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "shiki": "^3.23.0",
+    "typescript": "^6.0.3"
+  }
 }

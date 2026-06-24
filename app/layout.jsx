@@ -10,7 +10,7 @@ export const metadata = {
     template: '%s | Agent Docs'
   },
   description:
-    'Documentation for Hermes-based agent architecture, deployments, and operations.'
+    'Deployment strategy notes for Hermes-based business agents.'
 }
 
 const navbar = (
@@ -28,7 +28,7 @@ const navbar = (
 const footer = (
   <Footer>
     <span>
-      Hermes agent docs: manual installs now, SaaS onboarding later.
+      Hermes deployment strategy notes.
     </span>
   </Footer>
 )
@@ -44,7 +44,7 @@ export default async function RootLayout({ children }) {
           navbar={navbar}
           pageMap={pageMap}
           footer={footer}
-          docsRepositoryBase="https://example.com"
+          docsRepositoryBase="https://github.com/atlamors/agent-docs/tree/main"
           editLink="Edit this page"
           feedback={{ content: 'Send feedback' }}
           sidebar={{ defaultMenuCollapseLevel: 1 }}
