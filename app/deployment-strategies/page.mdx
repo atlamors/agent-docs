@@ -9,7 +9,7 @@ This section compares deployment models for Hermes-based agents that run through
 
 The goal is narrow: choose where the runtime, customer data, RAG, connectors, model inference, logs, and update path should live for a given customer deployment.
 
-This section does not define the vendor's product roadmap, pricing, customer success model, or support operating model. Where those assumptions affect deployment choice, they are marked explicitly in the [Technical Appendix](technical-appendix).
+This section does not define the vendor's product roadmap, pricing, customer success model, or support operating model. Where those assumptions affect deployment choice, they are marked explicitly in the [Technical Appendix](/deployment-strategies/technical-appendix).
 
 ## Control Boundary Terms
 
@@ -38,10 +38,10 @@ Kubernetes namespaces, containers, VMs, VPSs, VPCs, and cloud accounts are imple
 
 | Strategy | Runtime location | Customer data / RAG location | Model inference | Use when |
 | --- | --- | --- | --- | --- |
-| [Managed Cloud Runtime](managed-cloud-runtime) | Vendor-managed cloud, per-customer sandbox | Customer APIs or vendor-hosted customer-specific knowledge store | Cloud model | Standard cloud deployment with low customization. |
-| [Isolated Cloud Tenant](isolated-cloud-tenant) | Customer-specific vendor environment | Dedicated customer-specific knowledge store, customer APIs, or both | Cloud model, with local add-on possible | Customer needs stronger isolation but not full on-prem. |
-| [Hybrid Local Inference](hybrid-local-inference) | Vendor-managed cloud by default | Vendor-managed or customer-controlled, depending on boundary requirement | Customer-controlled inference endpoint | Customer wants local model execution. |
-| [Full On-Prem Appliance](full-on-prem-appliance) | Customer-controlled infrastructure boundary | Customer-controlled infrastructure boundary | Customer-controlled infrastructure boundary | Runtime, data, and inference must remain customer-controlled. |
+| [Managed Cloud Runtime](/deployment-strategies/managed-cloud-runtime) | Vendor-managed cloud, per-customer sandbox | Customer APIs or vendor-hosted customer-specific knowledge store | Cloud model | Standard cloud deployment with low customization. |
+| [Isolated Cloud Tenant](/deployment-strategies/isolated-cloud-tenant) | Customer-specific vendor environment | Dedicated customer-specific knowledge store, customer APIs, or both | Cloud model, with local add-on possible | Customer needs stronger isolation but not full on-prem. |
+| [Hybrid Local Inference](/deployment-strategies/hybrid-local-inference) | Vendor-managed cloud by default | Vendor-managed or customer-controlled, depending on boundary requirement | Customer-controlled inference endpoint | Customer wants local model execution. |
+| [Full On-Prem Appliance](/deployment-strategies/full-on-prem-appliance) | Customer-controlled infrastructure boundary | Customer-controlled infrastructure boundary | Customer-controlled infrastructure boundary | Runtime, data, and inference must remain customer-controlled. |
 
 ## Selection Logic
 
@@ -85,4 +85,4 @@ The appendix includes an assumption-based checklist for tracking these costs by 
 
 ## Technical Appendix
 
-Detailed diagrams, implementation assumptions, operating-model assumptions, and deployment runbook notes live in the [Technical Appendix](technical-appendix).
+Detailed diagrams, implementation assumptions, operating-model assumptions, and deployment runbook notes live in the [Technical Appendix](/deployment-strategies/technical-appendix).
